@@ -297,7 +297,7 @@ class mainUI(QWidget):
             # ax[ax_row][ax_col].yaxis.set_minor_formatter(mtick.FormatStrFormatter('%.2e'))
             # ax[ax_row][ax_col].yaxis.set_minor_locator(mtick.AutoMinorLocator(2))
 
-            ax[ax_row][ax_col].grid(b=True, which='major', color='black', linestyle='-')
+            # ax[ax_row][ax_col].grid(b=True, which='major', color='black', linestyle='--')
             # ax[ax_row][ax_col].grid(b=True, which='minor', color='red', linestyle='--')
             m += step
             x_temp = x[i:m]
@@ -306,13 +306,13 @@ class mainUI(QWidget):
             ax[ax_row][ax_col].set_title(title)
             if y[0] != []:
                 y_temp = y[0][i:m]
-                ax[ax_row][ax_col].plot(x_temp, y_temp, label='Id')
+                ax[ax_row][ax_col].plot(x_temp, y_temp, color='red',label='Id')
                 # ax[ax_row][ax_col].plot(x_temp, y_temp)
                 ax[ax_row][ax_col].set_ylim([min_I*1.1, max_I*1.1])
                 ax[ax_row][ax_col].set_xlim([min_V, max_V*1.1])
             if y[1] != []:
                 y_temp = y[1][i:m]
-                ax[ax_row][ax_col].plot(x_temp, y_temp, label='Isub')
+                ax[ax_row][ax_col].plot(x_temp, y_temp, color='green',label='Isub')
                 # ax[ax_row][ax_col].plot(x_temp, y_temp)
                 ax[ax_row][ax_col].set_ylim([min_I*1.1, max_I*1.1])
                 ax[ax_row][ax_col].set_xlim([min_V, max_V*1.1])
