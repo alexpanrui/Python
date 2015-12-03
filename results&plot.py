@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # V1, Vsub; I1, Isub; V3, Vd; I3, Id
 import numpy as np
+import matplotlib as mpl
+mpl.use("Qt4Agg")
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 from matplotlib import rcParams
@@ -257,41 +259,72 @@ class mainUI(QWidget):
             m += 1
         i = 0
         m = 0
-        # base = os.path.basename(item)
-        # l = os.path.splitext(base)[0]
+        base = os.path.basename(item)
+        l = os.path.splitext(base)[0]
+        l = l.replace('T','')
+        w_title = ' '.join(['Vg =', str(int(l)-1),'V'])
         # # print(Vd)
         # # print(Id)
         # print(y[0])
         # print(y[1])
         index = len(x)
         step = int(self.ln_vd_step.text())
-
+        Vsub_step = 100
+        cols = 5
+        nrows = math.ceil(index/step/5)
+        fig, ax = plt.subplots(nrows, cols)
+        fig.canvas.set_window_title(w_title)
+        ax_row = 0
+        ax_col = 0
+        max_I = max(y[0])
+        if max_I < max(y[1]):
+            max_I = max(y[1])
+        min_I = min(y[0])
+        if min_I > min(y[1]):
+            min_I = min(y[0])
+        max_V = max(x)
+        min_V = min(x)
+        Vsub = 0
         while True:
-            fig = plt.figure()
-            ax = fig.add_subplot(111)
-            ax.minorticks_on()
-            ax.set_title("Id Vs Vd")
-            ax.set_xlabel('Vd(V)')
-            ax.set_ylabel('Id(A)')
-            ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.2e'))
-            ax.xaxis.set_minor_formatter(mtick.FormatStrFormatter('%.2f'))
-            ax.xaxis.set_minor_locator(mtick.AutoMinorLocator(2))
-            ax.yaxis.set_minor_formatter(mtick.FormatStrFormatter('%.2e'))
-            ax.yaxis.set_minor_locator(mtick.AutoMinorLocator(2))
+            # ax[ax_row][ax_col] = fig.add_subplot(111)
+            # ax[ax_row][ax_col].minorticks_on()
+            # ax[ax_row][ax_col].set_title("Id Vs Vd")
+            ax[ax_row][ax_col].set_xlabel('Vd(V)')
+            ax[ax_row][ax_col].set_ylabel('I(A)')
+            ax[ax_row][ax_col].yaxis.set_major_formatter(mtick.FormatStrFormatter('%.2e'))
+            # ax[ax_row][ax_col].xaxis.set_minor_formatter(mtick.FormatStrFormatter('%.2f'))
+            # ax[ax_row][ax_col].xaxis.set_minor_locator(mtick.AutoMinorLocator(2))
+            # ax[ax_row][ax_col].yaxis.set_minor_formatter(mtick.FormatStrFormatter('%.2e'))
+            # ax[ax_row][ax_col].yaxis.set_minor_locator(mtick.AutoMinorLocator(2))
 
-            ax.grid(b=True, which='major', color='black', linestyle='-')
-            ax.grid(b=True, which='minor', color='red', linestyle='--')
+            ax[ax_row][ax_col].grid(b=True, which='major', color='black', linestyle='-')
+            # ax[ax_row][ax_col].grid(b=True, which='minor', color='red', linestyle='--')
             m += step
             x_temp = x[i:m]
+            ax[ax_row][ax_col].set_autoscale_on(False)
+            title = ' '.join(['Vsub=', str(Vsub/1000), 'V'])
+            ax[ax_row][ax_col].set_title(title)
             if y[0] != []:
                 y_temp = y[0][i:m]
-                ax.plot(x_temp, y_temp, label='Id')
+                # ax[ax_row][ax_col].plot(x_temp, y_temp, label='Id')
+                ax[ax_row][ax_col].plot(x_temp, y_temp)
+                ax[ax_row][ax_col].set_ylim([min_I*1.1, max_I*1.1])
+                ax[ax_row][ax_col].set_xlim([min_V, max_V*1.1])
             if y[1] != []:
                 y_temp = y[1][i:m]
-                ax.plot(x_temp, y_temp, label='Isub')
-            plt.legend()
+                # ax[ax_row][ax_col].plot(x_temp, y_temp, label='Isub')
+                # ax[ax_row][ax_col].plot(x_temp, y_temp, label='Isub')
+                ax[ax_row][ax_col].plot(x_temp, y_temp)
+                ax[ax_row][ax_col].set_ylim([min_I*1.1, max_I*1.1])
+                ax[ax_row][ax_col].set_xlim([min_V, max_V*1.1])
+            # plt.legend()
             plt.show()
             i = m
+            ax_col += 1
+            Vsub += Vsub_step
+            if ax_col >= cols:
+                ax_col = 0
+                ax_row += 1
             if i >= index:
                 break
 
