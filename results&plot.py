@@ -9,6 +9,7 @@ from matplotlib import rcParams
 import sys,os,math
 from PyQt4.QtGui import (QComboBox, QWidget, QPushButton, QApplication, QFileDialog, QMessageBox, QLabel, QLineEdit)
 rcParams.update({'figure.autolayout':True})
+rcParams['axes.color_cycle'] = ['r', 'b', 'c', 'g', 'm', 'y', 'k']
 filelist = []
 
 class mainUI(QWidget):
@@ -119,8 +120,8 @@ class mainUI(QWidget):
             # ax.grid(b=True, which='major', color='black', linestyle='-')
             # ax.grid(b=True, which='minor', color='r', linestyle='--')
             # i = 1
-            for file in filelist:
-                self.xtr_plot(file, l_plot, c_plot)
+            # for file in filelist:
+            self.xtr_plot(filelist, l_plot, c_plot)
                 # i = i + 1
             # plt.legend()
             # plt.show()
@@ -135,120 +136,131 @@ class mainUI(QWidget):
         QApplication.quit()
         sys.exit()
 
-    def xtr_plot(self, item, l_plot, c_plot):
+    def xtr_plot(self, filelist, l_plot, c_plot):
         # print(item)
         data1 = []
         x = []
         y = [[]]
         i = 0
+        cols = 1
+        if len(l_plot) <= 2:
+            fig, ax = plt.subplots(1, cols, squeeze=False)
 ####-----------------------------data extraction------------------------------------###
-        with open(item) as f:
-            data = f.read()
-        data = data.split('\n')
-        for x in data:
-            data1.append(x)
-        while True:
-            if '' in data1:
-                data1.remove('')
-            else:
-                break
-        del data[:]
-        temp = []
-        for i in range(0,len(data1)):
-            if "NO." in data1[0]:
-                temp = data1[0].split('\t')
-                del data1[0:2]
-                break
-            else:
-                data1.remove(data1[0])
-        for s in l_plot:
-            i = temp.index(s)
-            # print(i)
-            if s == 'V3':
-                x = [row.split("\t")[i] for row in data1]
-            elif s == 'V1':
-                x = [row.split("\t")[i] for row in data1]
-            elif s == 'I3':
-                y[0] = [row.split("\t")[i] for row in data1]
-            elif s == 'I1':
-                y.append([])
-                y[1] = [row.split("\t")[i] for row in data1]
+        for item in filelist:
+            with open(item) as f:
+                data = f.read()
+            data = data.split('\n')
+            for x in data:
+                data1.append(x)
+            while True:
+                if '' in data1:
+                    data1.remove('')
+                else:
+                    break
+            del data[:]
+            temp = []
+            for i in range(0,len(data1)):
+                if "NO." in data1[0]:
+                    temp = data1[0].split('\t')
+                    del data1[0:2]
+                    break
+                else:
+                    data1.remove(data1[0])
+            for s in l_plot:
+                i = temp.index(s)
+                # print(i)
+                if s == 'V3':
+                    x = [row.split("\t")[i] for row in data1]
+                elif s == 'V1':
+                    x = [row.split("\t")[i] for row in data1]
+                elif s == 'I3':
+                    y[0] = [row.split("\t")[i] for row in data1]
+                elif s == 'I1':
+                    y.append([])
+                    y[1] = [row.split("\t")[i] for row in data1]
 
-        x = self.toInt(x, "V")
-        i = 0
-        m = 0
-        for s in y:
-            if s:
-                y[m] = self.toInt(y[m], "A")
-            m += 1
-        i = 0
-        m = 0
+            x = self.toInt(x, "V")
+            i = 0
+            m = 0
+            for s in y:
+                if s:
+                    y[m] = self.toInt(y[m], "A")
+                m += 1
+            i = 0
+            m = 0
 
-###----------------------------------------Plotting----------------------------------###
-        base = os.path.basename(item)
-        l = os.path.splitext(base)[0]
-        l = l.replace('T','')
-        w_title = ' '.join(['Vg =', str(int(l)-1),'V'])
-        index = len(x)
-        step = int(self.ln_vd_step.text())
-        Vsub_step = 100
-        cols = 5
-        nrows = math.ceil(index/step/5)
-        fig, ax = plt.subplots(nrows, cols)
-        fig.canvas.set_window_title(w_title)
-        ax_row = 0
-        ax_col = 0
-        max_I = max(y[0])
-        if max_I < max(y[1]):
-            max_I = max(y[1])
-        min_I = min(y[0])
-        if min_I > min(y[1]):
+    ###----------------------------------------Plotting----------------------------------###
+            base = os.path.basename(item)
+            l = os.path.splitext(base)[0]
+            l = l.replace('T','')
+            # w_title = ' '.join(['Vg =', str(int(l)-1),'V'])
+            index = len(x)
+            step = int(self.ln_vd_step.text())
+            Vsub_step = 100
+            max_I = max(y[0])
             min_I = min(y[0])
-        max_V = max(x)
-        min_V = min(x)
-        Vsub = 0
-        while True:
-            # ax[ax_row][ax_col] = fig.add_subplot(111)
-            # ax[ax_row][ax_col].minorticks_on()
-            # ax[ax_row][ax_col].set_title("Id Vs Vd")
-            ax[ax_row][ax_col].set_xlabel('Vd(V)')
-            ax[ax_row][ax_col].set_ylabel('I(A)')
-            ax[ax_row][ax_col].yaxis.set_major_formatter(mtick.FormatStrFormatter('%.2e'))
-            # ax[ax_row][ax_col].xaxis.set_minor_formatter(mtick.FormatStrFormatter('%.2f'))
-            # ax[ax_row][ax_col].xaxis.set_minor_locator(mtick.AutoMinorLocator(2))
-            # ax[ax_row][ax_col].yaxis.set_minor_formatter(mtick.FormatStrFormatter('%.2e'))
-            # ax[ax_row][ax_col].yaxis.set_minor_locator(mtick.AutoMinorLocator(2))
+            if len(l_plot) > 2:
+                cols = 5
+                nrows = math.ceil(index/step/5)
+                fig, ax = plt.subplots(nrows, cols)
+                if max_I < max(y[1]):
+                    max_I = max(y[1])
+                if min_I > min(y[1]):
+                    min_I = min(y[1])
+            # fig.canvas.set_window_title(w_title)
+            ax_row = 0
+            ax_col = 0
+            max_V = max(x)
+            min_V = min(x)
+            Vsub = 0
+            while True:
+                # ax[ax_row][ax_col] = fig.add_subplot(111)
+                # ax[ax_row][ax_col].minorticks_on()
+                # ax[ax_row][ax_col].set_title("Id Vs Vd")
+                ax[ax_row][ax_col].set_xlabel('Vd(V)')
+                ax[ax_row][ax_col].set_ylabel('I(A)')
+                ax[ax_row][ax_col].yaxis.set_major_formatter(mtick.FormatStrFormatter('%.2e'))
+                # ax[ax_row][ax_col].xaxis.set_minor_formatter(mtick.FormatStrFormatter('%.2f'))
+                # ax[ax_row][ax_col].xaxis.set_minor_locator(mtick.AutoMinorLocator(2))
+                # ax[ax_row][ax_col].yaxis.set_minor_formatter(mtick.FormatStrFormatter('%.2e'))
+                # ax[ax_row][ax_col].yaxis.set_minor_locator(mtick.AutoMinorLocator(2))
 
-            # ax[ax_row][ax_col].grid(b=True, which='major', color='black', linestyle='--')
-            # ax[ax_row][ax_col].grid(b=True, which='minor', color='red', linestyle='--')
-            m += step
-            x_temp = x[i:m]
-            ax[ax_row][ax_col].set_autoscale_on(False)
-            title = ' '.join(['Vsub=', str(Vsub/1000), 'V'])
-            ax[ax_row][ax_col].set_title(title)
-            if y[0]:
-                y_temp = y[0][i:m]
-                ax[ax_row][ax_col].plot(x_temp, y_temp, color='red',label='Id')
-                # ax[ax_row][ax_col].plot(x_temp, y_temp)
-                ax[ax_row][ax_col].set_ylim([min_I*1.1, max_I*1.1])
-                ax[ax_row][ax_col].set_xlim([min_V, max_V*1.1])
-            if y[1]:
-                y_temp = y[1][i:m]
-                ax[ax_row][ax_col].plot(x_temp, y_temp, color='green',label='Isub')
-                # ax[ax_row][ax_col].plot(x_temp, y_temp)
-                ax[ax_row][ax_col].set_ylim([min_I*1.1, max_I*1.1])
-                ax[ax_row][ax_col].set_xlim([min_V, max_V*1.1])
-            # plt.legend()
-            ax[ax_row][ax_col].legend(prop={'size':10})
-            plt.show()
-            i = m
-            ax_col += 1
-            Vsub += Vsub_step
-            if ax_col >= cols:
-                ax_col = 0
-                ax_row += 1
-            if i >= index:
-                break
+                # ax[ax_row][ax_col].grid(b=True, which='major', color='black', linestyle='--')
+                # ax[ax_row][ax_col].grid(b=True, which='minor', color='red', linestyle='--')
+                m += step
+                x_temp = x[i:m]
+                ax[ax_row][ax_col].set_autoscale_on(False)
+                title = ' '.join(['Vsub=', str(Vsub/1000), 'V'])
+                ax[ax_row][ax_col].set_title(title)
+                plt_color = ['red', 'green']
+                i_color = 0
+                for data in y:
+                    y_temp = data[i:m]
+                # if y[0]:
+                #     y_temp = y[0][i:m]
+                #     ax[ax_row][ax_col].plot(x_temp, y_temp, color='red',label='Id')
+                    # ax[ax_row][ax_col].plot(x_temp, y_temp)
+                    ax[ax_row][ax_col].plot(x_temp, y_temp)
+                    ax[ax_row][ax_col].set_ylim([min_I*1.1, max_I*1.1])
+                    ax[ax_row][ax_col].set_xlim([min_V, max_V*1.1])
+                    i_color += 1
+                # if y[1]:
+                #     y_temp = y[1][i:m]
+                #     ax[ax_row][ax_col].plot(x_temp, y_temp, color='green',label='Isub')
+                #     # ax[ax_row][ax_col].plot(x_temp, y_temp)
+                #     ax[ax_row][ax_col].set_ylim([min_I*1.1, max_I*1.1])
+                #     ax[ax_row][ax_col].set_xlim([min_V, max_V*1.1])
+                # plt.legend()
+                # ax[ax_row][ax_col].legend(prop={'size':10})
+                plt.show()
+                i = m
+                ax_col += 1
+                Vsub += Vsub_step
+                if ax_col >= cols:
+                    ax_col = 0
+                    ax_row += 1
+                if i >= index:
+                    break
 
     def toInt(self, input, keyword):
         i = 0
