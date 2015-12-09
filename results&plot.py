@@ -69,7 +69,7 @@ class mainUI(QWidget):
         self.setGeometry(300,300,300,260)
         self.setWindowTitle('SnapBack')
         self.show()
-
+#dfskldfjslkj
     def showFolderDialog(self):
         global filelist
         index = 0
