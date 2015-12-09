@@ -69,48 +69,24 @@ class mainUI(QWidget):
         self.setGeometry(300,300,300,260)
         self.setWindowTitle('SnapBack')
         self.show()
-#dfskldfjslkj
+
     def showFolderDialog(self):
         global filelist
-        index = 0
-        basex = 60
-        basey = 60
+        filelist = []
         try:
             filelist = QFileDialog.getOpenFileNames(self,'Select Files')
             self.btn_run.setEnabled(True)
-            # print(os.path.dirname(os.path.realpath(filelist[0])))
             os.chdir(os.path.dirname(os.path.realpath(filelist[0])))
-            # self.chk = QCheckBox('test',self)
-            # self.chk.move(basex, basey)
-            # self.chk.toggle()
-            # self.show()
-            # for item in filelist:
-            #     basey = basey + (index + 1) * 40
-                # self.addchkbox(item, basex, basey)
-            # self.update()
-            # print(filelist)
         except:
             print(sys.exc_info()[0])
-
-    # def addchkbox(self, item, basex, basey):
-    #     base = os.path.basename(item)
-    #     l = os.path.splitext(base)[0]
-    #     chk = QCheckBox(l,self)
-    #     chk.move(basex, basey)
-    #     chk.toggle()
-        # print(basex)
-        # print(basey)
-
     def run(self):
         global filelist
-        # print(filelist)
-        # newlist = list(map(self.xtr_plot,filelist))
-        if filelist == []:
+        if not filelist:
             QMessageBox.information(self,'Warning', 'Nothing to plot')
-            return
+            # return
         elif self.ln_vd_step.text() == '':
             QMessageBox.information(self, 'Warning', 'Please input step')
-            return
+            # return
         else:
             l_plot = []
             c_plot = []
@@ -151,7 +127,7 @@ class mainUI(QWidget):
             # print(newlist)
             # self.btn_save.setEnabled(True)
             filelist = []
-            return
+        return
 
     def closeEvent(self, QCloseEvent):
         plt.ioff()
@@ -162,16 +138,15 @@ class mainUI(QWidget):
     def xtr_plot(self, item, l_plot, c_plot):
         # print(item)
         data1 = []
+        x = []
+        y = [[]]
         i = 0
+####-----------------------------data extraction------------------------------------###
         with open(item) as f:
             data = f.read()
         data = data.split('\n')
-        # print(data)
         for x in data:
-            # if i > 2:
             data1.append(x)
-            # i += 1
-        i = 0
         while True:
             if '' in data1:
                 data1.remove('')
@@ -186,10 +161,6 @@ class mainUI(QWidget):
                 break
             else:
                 data1.remove(data1[0])
-        x = []
-        y = []
-        y.append([])
-        y.append([])
         for s in l_plot:
             i = temp.index(s)
             # print(i)
@@ -200,73 +171,24 @@ class mainUI(QWidget):
             elif s == 'I3':
                 y[0] = [row.split("\t")[i] for row in data1]
             elif s == 'I1':
+                y.append([])
                 y[1] = [row.split("\t")[i] for row in data1]
-        i = 0
 
-        for s in x:
-            s = s.replace("V","")
-            s = s.replace(" ","")
-            if "f" in s:
-                s = s.replace("f","")
-                num = float(s)/1000000000000000
-            elif "p" in s:
-                s = s.replace("p","")
-                num = float(s)/1000000000000
-            elif "n" in s:
-                s = s.replace("n","")
-                num = float(s)/1000000000
-            elif "u" in s:
-                s = s.replace("u","")
-                num = float(s)/1000000
-            elif "m" in s:
-                s = s.replace("m","")
-                num = float(s)/1000
-            else:
-                num = float(s)
-            x[i] = num
-            i += 1
-        # print(x)
+        x = self.toInt(x, "V")
         i = 0
         m = 0
         for s in y:
-            # print(s)
-            if s != []:
-                for s1 in s:
-                    s1 = s1.replace("A","")
-                    s1 = s1.replace(" ","")
-                    if "f" in s1:
-                        s1 = s1.replace("f","")
-                        num = float(s1)/1000000000000000
-                    elif "p" in s1:
-                        s1 = s1.replace("p","")
-                        num = float(s1)/1000000000000
-                    elif "n" in s1:
-                        s1 = s1.replace("n","")
-                        num = float(s1)/1000000000
-                    elif "u" in s1:
-                        s1 = s1.replace("u","")
-                        num = float(s1)/1000000
-                    elif "m" in s1:
-                        s1 = s1.replace("m","")
-                        num = float(s1)/1000
-                    else:
-                        num = float(s1)
-                    y[m][i] = num
-                    i += 1
-                i = 0
-            # print(m)
-            # print(y[m])
+            if s:
+                y[m] = self.toInt(y[m], "A")
             m += 1
         i = 0
         m = 0
+
+###----------------------------------------Plotting----------------------------------###
         base = os.path.basename(item)
         l = os.path.splitext(base)[0]
         l = l.replace('T','')
         w_title = ' '.join(['Vg =', str(int(l)-1),'V'])
-        # # print(Vd)
-        # # print(Id)
-        # print(y[0])
-        # print(y[1])
         index = len(x)
         step = int(self.ln_vd_step.text())
         Vsub_step = 100
@@ -304,13 +226,13 @@ class mainUI(QWidget):
             ax[ax_row][ax_col].set_autoscale_on(False)
             title = ' '.join(['Vsub=', str(Vsub/1000), 'V'])
             ax[ax_row][ax_col].set_title(title)
-            if y[0] != []:
+            if y[0]:
                 y_temp = y[0][i:m]
                 ax[ax_row][ax_col].plot(x_temp, y_temp, color='red',label='Id')
                 # ax[ax_row][ax_col].plot(x_temp, y_temp)
                 ax[ax_row][ax_col].set_ylim([min_I*1.1, max_I*1.1])
                 ax[ax_row][ax_col].set_xlim([min_V, max_V*1.1])
-            if y[1] != []:
+            if y[1]:
                 y_temp = y[1][i:m]
                 ax[ax_row][ax_col].plot(x_temp, y_temp, color='green',label='Isub')
                 # ax[ax_row][ax_col].plot(x_temp, y_temp)
@@ -328,14 +250,32 @@ class mainUI(QWidget):
             if i >= index:
                 break
 
-        # if y[0] != []:
-        #     y_temp = y[0][0:211]
-        #     ax.plot(x[0:211], y_temp, label=l)
-        # if y[1] != []:
-        #     y_temp = y[1][0:211]
-        #     ax.plot(x[0:211], y_temp, label=l)
+    def toInt(self, input, keyword):
+        i = 0
+        for s in input:
+            s = s.replace(keyword,"")
+            s = s.replace(" ","")
+            if "f" in s:
+                s = s.replace("f","")
+                num = float(s)/1000000000000000
+            elif "p" in s:
+                s = s.replace("p","")
+                num = float(s)/1000000000000
+            elif "n" in s:
+                s = s.replace("n","")
+                num = float(s)/1000000000
+            elif "u" in s:
+                s = s.replace("u","")
+                num = float(s)/1000000
+            elif "m" in s:
+                s = s.replace("m","")
+                num = float(s)/1000
+            else:
+                num = float(s)
+            input[i] = num
+            i += 1
 
-
+        return input
     # def save(self):
     #     return
 if __name__ == '__main__':
